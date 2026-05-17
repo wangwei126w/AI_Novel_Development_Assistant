@@ -498,7 +498,7 @@ app.get('/api/projects/:id/chapters/:chapterId', authMiddleware, async (req, res
     const project = await loadProject(req.params.id, { loadContent: false });
     if (!req.isAdmin && project.userId !== req.userId) return res.status(403).json({ error: '无权访问' });
 
-    const chapterMeta = project.chapters.find(ch => ch.id === req.params.chapterId);
+    const chapterMeta = (project.chapters || []).find(ch => ch.id === req.params.chapterId);
     if (!chapterMeta) return res.status(404).json({ error: '章节不存在' });
 
     const content = await loadSingleChapter(req.params.id, req.params.chapterId);
@@ -611,17 +611,17 @@ function buildContext(project, options = {}) {
   }
 
   // 5. 卷信息（长篇小说多卷结构，增加卷信息详细度）
-  const currentChapter = project.chapters.find(ch => ch.id === currentChapterId);
+  const currentChapter = (project.chapters || []).find(ch => ch.id === currentChapterId);
   if (currentChapter?.volumeId && project.volumes?.length > 0) {
-    const currentVolume = project.volumes.find(v => v.id === currentChapter.volumeId);
+    const currentVolume = (project.volumes || []).find(v => v.id === currentChapter.volumeId);
     if (currentVolume) {
       context += `【当前卷】\n第${currentVolume.number}卷 ${currentVolume.title}\n`;
       if (currentVolume.summary) {
         context += `卷概要: ${currentVolume.summary.slice(0, 800)}\n`;
       }
       // 添加前后卷信息（如果有）
-      const prevVolume = project.volumes.find(v => v.number === currentVolume.number - 1);
-      const nextVolume = project.volumes.find(v => v.number === currentVolume.number + 1);
+      const prevVolume = (project.volumes || []).find(v => v.number === currentVolume.number - 1);
+      const nextVolume = (project.volumes || []).find(v => v.number === currentVolume.number + 1);
       if (prevVolume) {
         context += `前情提要（第${prevVolume.number}卷 ${prevVolume.title}）: ${prevVolume.summary?.slice(0, 300) || '无'}\n`;
       }
@@ -674,12 +674,12 @@ function buildContext(project, options = {}) {
   }
 
   // 8. 角色出场记录（追踪角色在哪些章节出现，增加到最近10章）
-  if (project.characters?.length > 0) {
+  if (project.characters?.length > 0 && project.chapters?.length > 0) {
     const characterAppearances = {};
-    for (const ch of project.chapters.slice(0, currentIndex)) {
+    for (const ch of (project.chapters || []).slice(0, currentIndex)) {
       if (ch.keywords) {
         for (const keyword of ch.keywords) {
-          const char = project.characters.find(c => c.name === keyword || keyword.includes(c.name));
+          const char = (project.characters || []).find(c => c.name === keyword || keyword.includes(c.name));
           if (char) {
             if (!characterAppearances[char.name]) characterAppearances[char.name] = [];
             characterAppearances[char.name].push(ch.number);
@@ -712,13 +712,33 @@ function buildContext(project, options = {}) {
 app.post('/api/ai/write', authMiddleware, async (req, res) => {
   try {
     const { projectId, chapterId, mode, prompt, style, useEnhancedContext = true } = req.body;
-    const project = await loadProject(projectId, { loadContent: false });
-    if (!req.isAdmin && project.userId !== req.userId) return res.status(403).json({ error: '无权访问' });
+    
+    // 判断是普通项目还是 mega 项目
+    const isMegaProject = projectId.startsWith('mega_');
+    let project, chapterContent;
+    
+    if (isMegaProject) {
+      // 加载 mega 项目
+      const { MegaProjectLoader } = await import('./mega-storage.js');
+      const loader = new MegaProjectLoader(projectId);
+      project = await loader.loadMeta();
+      if (!project) return res.status(404).json({ error: '项目不存在' });
+      if (!req.isAdmin && project.userId !== req.userId) return res.status(403).json({ error: '无权访问' });
+      
+      // 加载章节内容
+      const chapterData = await loader.loadChapter(chapterId);
+      chapterContent = chapterData?.content || '';
+    } else {
+      // 加载普通项目
+      project = await loadProject(projectId, { loadContent: false });
+      if (!req.isAdmin && project.userId !== req.userId) return res.status(403).json({ error: '无权访问' });
+      chapterContent = await loadSingleChapter(projectId, chapterId);
+    }
 
     let context;
     
     // 使用增强的分层上下文（适用于大项目）
-    if (useEnhancedContext && (project.chapters?.length > 50 || project.volumes?.length > 0)) {
+    if (useEnhancedContext && (project.chapters?.length > 50 || project.volumes?.length > 0 || isMegaProject)) {
       const builder = new MegaContextBuilder(project);
       builder.setPosition(chapterId);
       context = await builder.buildContext({ 
@@ -730,8 +750,6 @@ app.post('/api/ai/write', authMiddleware, async (req, res) => {
       // 使用原有上下文构建
       context = buildContext(project, { currentChapterId: chapterId, mode });
     }
-    
-    const chapterContent = await loadSingleChapter(projectId, chapterId);
 
     let systemPrompt = `你是一位专业的小说写作助手，擅长创作长篇小说。你正在协助作者续写一部已经建立了完整世界观、角色设定和情节大纲的小说。\n\n你的任务是根据提供的世界观背景、角色设定、情节大纲和前文内容，续写当前章节。\n\n核心原则：\n1. **角色一致性**：每个角色的行为、语言风格必须符合其性格设定\n2. **世界观一致性**：所有事件必须符合世界观规则\n3. **情节连贯性**：续写内容必须与前文逻辑连贯，推进已有情节\n4. **大纲遵循**：按照情节大纲的方向发展故事\n5. **只输出正文**：不要添加解释、标注或章节标题`;
     if (style) systemPrompt += `\n\n写作风格要求：${style}\n`;

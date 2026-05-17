@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BookOpen, Plus, Trash2, Clock, FileText, ArrowRight, Sparkles, Lock, Unlock } from 'lucide-react'
+import { BookOpen, Plus, Trash2, Clock, FileText, ArrowRight, Sparkles, Lock, Unlock, Edit2, X, Check } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Project } from '../types'
 import { fetchProjects, createProject, deleteProject } from '../hooks/useApi'
@@ -10,6 +10,11 @@ export default function HomePage() {
   const [showNewForm, setShowNewForm] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newSummary, setNewSummary] = useState('')
+  
+  // 编辑状态
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editSummary, setEditSummary] = useState('')
 
   useEffect(() => {
     loadProjects()
@@ -43,9 +48,38 @@ export default function HomePage() {
 
   async function handleToggleLock(project: Project) {
     const updatedProject = { ...project, locked: !project.locked }
-    // 使用 updateProject API 更新项目
     const { updateProject } = await import('../hooks/useApi')
     await updateProject(project.id, { locked: updatedProject.locked })
+    loadProjects()
+  }
+
+  // 开始编辑
+  function startEdit(project: Project) {
+    if (project.locked) {
+      alert('该项目已锁定，无法编辑')
+      return
+    }
+    setEditingId(project.id)
+    setEditTitle(project.title)
+    setEditSummary(project.summary || '')
+  }
+
+  // 取消编辑
+  function cancelEdit() {
+    setEditingId(null)
+    setEditTitle('')
+    setEditSummary('')
+  }
+
+  // 保存编辑
+  async function saveEdit(projectId: string) {
+    if (!editTitle.trim()) {
+      alert('项目名称不能为空')
+      return
+    }
+    const { updateProject } = await import('../hooks/useApi')
+    await updateProject(projectId, { title: editTitle, summary: editSummary })
+    setEditingId(null)
     loadProjects()
   }
 
@@ -142,58 +176,112 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => (
             <div key={project.id} className="card hover:shadow-lg transition-all group border-emerald-100/60 bg-white/80 backdrop-blur-sm">
-              <div className="flex justify-between items-start mb-3">
-                <Link
-                  to={`/project/${project.id}`}
-                  className="text-lg font-semibold text-gray-800 hover:text-emerald-600 transition-colors flex items-center gap-2"
-                >
-                  {project.locked && <Lock className="w-4 h-4 text-amber-500" />}
-                  {project.title}
-                </Link>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => handleToggleLock(project)}
-                    className="text-gray-300 hover:text-amber-500 transition-colors p-1"
-                    title={project.locked ? '解锁项目' : '锁定项目'}
-                  >
-                    {project.locked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                  </button>
-                  {project.locked ? null : (
-                    <button
-                      onClick={() => handleDelete(project)}
-                      className="text-gray-300 hover:text-red-500 transition-colors p-1"
-                      title="删除项目"
+              {editingId === project.id ? (
+                // 编辑模式
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">作品名称</label>
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="input-field text-sm"
+                      placeholder="输入小说名称"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">简介</label>
+                    <textarea
+                      value={editSummary}
+                      onChange={(e) => setEditSummary(e.target.value)}
+                      className="input-field h-20 resize-none text-sm"
+                      placeholder="简要描述你的小说..."
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => saveEdit(project.id)}
+                      className="btn-primary text-sm py-1.5 flex items-center gap-1"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Check className="w-4 h-4" />
+                      保存
                     </button>
-                  )}
+                    <button 
+                      onClick={cancelEdit}
+                      className="btn-secondary text-sm py-1.5 flex items-center gap-1"
+                    >
+                      <X className="w-4 h-4" />
+                      取消
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                // 显示模式
+                <>
+                  <div className="flex justify-between items-start mb-3">
+                    <Link
+                      to={`/project/${project.id}`}
+                      className="text-lg font-semibold text-gray-800 hover:text-emerald-600 transition-colors flex items-center gap-2"
+                    >
+                      {project.locked && <Lock className="w-4 h-4 text-amber-500" />}
+                      {project.title}
+                    </Link>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {!project.locked && (
+                        <button
+                          onClick={() => startEdit(project)}
+                          className="text-gray-300 hover:text-emerald-500 transition-colors p-1"
+                          title="编辑项目"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleToggleLock(project)}
+                        className="text-gray-300 hover:text-amber-500 transition-colors p-1"
+                        title={project.locked ? '解锁项目' : '锁定项目'}
+                      >
+                        {project.locked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                      </button>
+                      {project.locked ? null : (
+                        <button
+                          onClick={() => handleDelete(project)}
+                          className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                          title="删除项目"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
-              <p className="text-gray-500 text-sm mb-4 line-clamp-2">
-                {project.summary || '暂无简介'}
-              </p>
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                    {project.summary || '暂无简介'}
+                  </p>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 text-sm text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <FileText className="w-4 h-4" />
-                    {formatWordCount(project.wordCount || 0)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {formatDate(project.updatedAt)}
-                  </span>
-                </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <FileText className="w-4 h-4" />
+                        {formatWordCount(project.wordCount || 0)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {formatDate(project.updatedAt)}
+                      </span>
+                    </div>
 
-                <Link
-                  to={`/project/${project.id}`}
-                  className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 text-sm font-medium opacity-0 group-hover:opacity-100 transition-all"
-                >
-                  进入
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
+                    <Link
+                      to={`/project/${project.id}`}
+                      className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 text-sm font-medium opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      进入
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>

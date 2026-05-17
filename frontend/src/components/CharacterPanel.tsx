@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, User, Edit2, Check, X } from 'lucide-react'
 import { Character } from '../types'
 
@@ -199,7 +199,26 @@ function CharacterEditForm({ character, onSave, onCancel }: {
   onSave: (updates: Partial<Character>) => void
   onCancel: () => void
 }) {
+  // 使用本地状态，避免每次输入都触发父组件更新
   const [form, setForm] = useState(character)
+  const [localDescription, setLocalDescription] = useState(character.description || '')
+
+  // 同步外部状态到本地
+  useEffect(() => {
+    setForm(character)
+    setLocalDescription(character.description || '')
+  }, [character])
+
+  // 处理描述更新（防抖）
+  const handleDescriptionChange = (value: string) => {
+    setLocalDescription(value)
+    setForm({ ...form, description: value })
+  }
+
+  // 保存时合并本地状态
+  const handleSave = () => {
+    onSave({ ...form, description: localDescription })
+  }
 
   return (
     <div className="space-y-3">
@@ -218,8 +237,8 @@ function CharacterEditForm({ character, onSave, onCancel }: {
         placeholder="外貌"
       />
       <textarea
-        value={form.description || ''}
-        onChange={e => setForm({ ...form, description: e.target.value })}
+        value={localDescription}
+        onChange={e => handleDescriptionChange(e.target.value)}
         className="input-field h-20 resize-none text-sm"
         placeholder="简介"
       />
@@ -245,7 +264,7 @@ function CharacterEditForm({ character, onSave, onCancel }: {
         placeholder="目标"
       />
       <div className="flex gap-2">
-        <button onClick={() => onSave(form)} className="btn-primary text-sm py-1.5">
+        <button onClick={handleSave} className="btn-primary text-sm py-1.5">
           <Check className="w-4 h-4" />
         </button>
         <button onClick={onCancel} className="btn-secondary text-sm py-1.5">

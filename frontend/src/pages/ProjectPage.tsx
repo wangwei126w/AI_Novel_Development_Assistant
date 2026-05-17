@@ -152,7 +152,17 @@ export default function ProjectPage() {
   }, [project, handleUpdateProject])
 
   const handleAIWrite = useCallback(async (mode: WriteMode, prompt?: string, style?: string) => {
-    if (!project || !activeChapterId) return null
+    if (!project) {
+      console.error('AI写作失败: 项目不存在')
+      throw new Error('项目不存在')
+    }
+    if (!activeChapterId) {
+      console.error('AI写作失败: 未选择章节')
+      throw new Error('请先选择一个章节')
+    }
+    
+    console.log('开始AI写作:', { projectId: project.id, chapterId: activeChapterId, mode, prompt, style })
+    
     const result = await aiWrite({
       projectId: project.id,
       chapterId: activeChapterId,
@@ -160,6 +170,13 @@ export default function ProjectPage() {
       prompt,
       style,
     })
+    
+    console.log('AI写作结果:', result)
+    
+    if (result.error) {
+      throw new Error(result.error)
+    }
+    
     return result?.content || null
   }, [project, activeChapterId])
 

@@ -387,7 +387,7 @@ export async function getClueReminders(
 }
 
 /**
- * 自动提取线索
+ * 自动提取线索（基础规则版）
  */
 export async function autoExtractClues(
   projectId: string,
@@ -400,6 +400,63 @@ export async function autoExtractClues(
       ...getAuthHeaders()
     },
     body: JSON.stringify({ chapterId })
+  })
+  return res.json()
+}
+
+/**
+ * AI 智能提取线索（高级版）
+ */
+export async function aiExtractClues(
+  projectId: string,
+  chapterId: string,
+  options?: { analyzeTiming?: boolean; checkRelationships?: boolean }
+): Promise<{
+  success: boolean
+  extracted: number
+  clues: Clue[]
+  analysis?: {
+    totalDetected: number
+    duplicatesFiltered: number
+    conflicts: any[]
+    relationships: any[]
+  }
+  message: string
+}> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/ai-extract-clues`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ chapterId, options })
+  })
+  return res.json()
+}
+
+/**
+ * 批量 AI 提取线索
+ */
+export async function aiExtractCluesBatch(
+  projectId: string,
+  chapterIds: string[],
+  options?: { analyzeTiming?: boolean; checkRelationships?: boolean }
+): Promise<{
+  success: boolean
+  totalChapters: number
+  results: any[]
+  summary: {
+    totalClues: number
+    successful: number
+  }
+}> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/ai-extract-clues-batch`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ chapterIds, options })
   })
   return res.json()
 }

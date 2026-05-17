@@ -5,10 +5,11 @@
 
 import { MegaContextBuilder, buildQuickContext, buildDeepContext, buildRAGContext, indexProjectChapters } from './mega-context-builder.js';
 import { MegaProjectLoader, createMegaProject, loadMegaProject, BackupManager, ProjectIndex } from './mega-storage.js';
-import { callAI } from './ai-service.js';
+import { callAI, extractAIContent } from './ai-service.js';
 import { ClueTracker, ClueType, ClueStatus, autoExtractClues } from './clue-tracker.js';
 import { VectorIndex, SmartContextRetriever, indexProjectChapters as vectorIndexProject } from './vector-store.js';
 import { SegmentManager, SegmentContextBuilder, SEGMENT_CONFIG } from './mega-segment-manager.js';
+import { smartExtractClues, batchExtractClues } from './ai-clue-extractor.js';
 
 /**
  * 注册超大小说 API 路由
@@ -131,6 +132,33 @@ export function registerMegaNovelRoutes(app, authMiddleware) {
       }
 
       res.json(project);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  /**
+   * 更新项目元数据（世界观、角色等）
+   */
+  app.put('/api/mega/projects/:id', authMiddleware, async (req, res) => {
+    try {
+      const updates = req.body;
+      const loader = new MegaProjectLoader(req.params.id);
+      let project = await loader.loadMeta();
+
+      if (!project) {
+        return res.status(404).json({ error: '项目不存在' });
+      }
+
+      if (project.userId !== req.userId && !req.isAdmin) {
+        return res.status(403).json({ error: '无权访问' });
+      }
+
+      // 合并更新
+      Object.assign(project, updates, { updatedAt: Date.now() });
+
+      await loader.metaManager.saveMeta(project);
+      res.json({ success: true, project });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -692,7 +720,7 @@ ${chapterContent || ''}`;
   });
 
   /**
-   * 自动提取线索
+   * 自动提取线索（基础规则版）
    */
   app.post('/api/mega/projects/:id/auto-extract-clues', authMiddleware, async (req, res) => {
     try {
@@ -710,6 +738,85 @@ ${chapterContent || ''}`;
 
       res.json({ success: true, extracted: clues.length, clues });
     } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  /**
+   * AI 智能提取线索（高级版）
+   */
+  app.post('/api/mega/projects/:id/ai-extract-clues', authMiddleware, async (req, res) => {
+    try {
+      const { chapterId, options = {} } = req.body;
+      const loader = new MegaProjectLoader(req.params.id);
+      const project = await loader.loadMeta();
+
+      if (!project) {
+        return res.status(404).json({ error: '项目不存在' });
+      }
+
+      // 加载章节内容
+      const chapterData = await loader.loadChapter(chapterId);
+      if (!chapterData || !chapterData.content) {
+        return res.status(404).json({ error: '章节不存在或内容为空' });
+      }
+
+      // 获取章节信息
+      const chapter = project.chapters.find(ch => ch.id === chapterId);
+      
+      // 使用 AI 智能提取
+      const result = await smartExtractClues(req.params.id, chapterId, chapterData.content, {
+        bookTitle: project.title,
+        chapterNumber: chapter?.number || 0,
+        chapterTitle: chapter?.title || '',
+        analyzeTiming: options.analyzeTiming !== false,
+        checkRelationships: options.checkRelationships !== false
+      });
+
+      res.json(result);
+    } catch (e) {
+      console.error('AI 线索提取失败:', e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  /**
+   * 批量 AI 提取线索
+   */
+  app.post('/api/mega/projects/:id/ai-extract-clues-batch', authMiddleware, async (req, res) => {
+    try {
+      const { chapterIds, options = {} } = req.body;
+      const loader = new MegaProjectLoader(req.params.id);
+      const project = await loader.loadMeta();
+
+      if (!project) {
+        return res.status(404).json({ error: '项目不存在' });
+      }
+
+      // 加载指定章节
+      const chapters = [];
+      for (const chapterId of chapterIds) {
+        const chapterData = await loader.loadChapter(chapterId);
+        const chapter = project.chapters.find(ch => ch.id === chapterId);
+        if (chapterData && chapterData.content) {
+          chapters.push({
+            id: chapterId,
+            number: chapter?.number || 0,
+            title: chapter?.title || '',
+            content: chapterData.content
+          });
+        }
+      }
+
+      // 批量提取
+      const result = await batchExtractClues(req.params.id, chapters, {
+        bookTitle: project.title,
+        ...options
+      });
+
+      res.json(result);
+    } catch (e) {
+      console.error('批量 AI 线索提取失败:', e);
       res.status(500).json({ error: e.message });
     }
   });

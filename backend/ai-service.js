@@ -6,23 +6,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * 调用 OpenClaw 内置的 Kimi 服务
- * 通过 sessions_spawn 或直接调用 gateway 的 AI 接口
+ * 调用 AI 服务
+ * 支持多种 API 配置
  */
-export async function callAI({ systemPrompt, userPrompt, model = 'kimi/kimi-code', temperature = 0.8, maxTokens = 2000 }) {
-  // 尝试使用 OpenClaw 的 gateway 工具
+export async function callAI({ systemPrompt, userPrompt, model, temperature = 0.8, maxTokens = 2000 }) {
+  const apiKey = process.env.KIMI_API_KEY || process.env.OPENAI_API_KEY || process.env.DEEPSEEK_API_KEY;
+  const apiUrl = process.env.AI_API_URL || 'https://api.openai.com/v1/chat/completions';
+  const aiModel = model || process.env.AI_MODEL || 'gpt-4';
+  
+  if (!apiKey) {
+    throw new Error('未配置 AI API Key');
+  }
+
   try {
-    // 检查是否有 gateway 工具可用
-    const gatewayPath = join(process.env.HOME || '/root', '.nvm/versions/node/v24.15.0/bin/openclaw');
-    
-    // 使用 curl 调用 gateway 的 API
-    const response = await fetch('http://localhost:3000/api/v1/chat/completions', {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model,
+        model: aiModel,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -33,14 +37,27 @@ export async function callAI({ systemPrompt, userPrompt, model = 'kimi/kimi-code
     });
     
     if (!response.ok) {
-      throw new Error(`Gateway API error: ${response.status}`);
+      const error = await response.text();
+      throw new Error(`API error: ${response.status} - ${error}`);
     }
     
     return await response.json();
   } catch (e) {
-    // 如果 gateway 不可用，返回错误
     throw new Error(`AI 调用失败: ${e.message}`);
   }
+}
+
+/**
+ * 从 AI 响应中提取内容
+ */
+export function extractAIContent(response) {
+  if (response.choices && response.choices[0]) {
+    return response.choices[0].message.content;
+  }
+  if (response.content) {
+    return response.content;
+  }
+  throw new Error('无法解析 AI 响应');
 }
 
 /**

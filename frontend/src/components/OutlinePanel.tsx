@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { List, Plus, Trash2, Edit2, Check, X, BookOpen } from 'lucide-react'
 import { PlotOutline, Chapter } from '../types'
 
@@ -190,57 +190,88 @@ function OutlineEditForm({ outline, onSave, onCancel }: {
   onSave: (updates: Partial<PlotOutline>) => void
   onCancel: () => void
 }) {
+  // 使用本地状态，避免每次输入都触发父组件更新
   const [form, setForm] = useState(outline)
+  const [localContent, setLocalContent] = useState(outline.content || '')
+
+  // 同步外部状态到本地
+  useEffect(() => {
+    setForm(outline)
+    setLocalContent(outline.content || '')
+  }, [outline])
+
+  // 处理内容更新
+  const handleContentChange = (value: string) => {
+    setLocalContent(value)
+    setForm({ ...form, content: value })
+  }
+
+  // 保存时合并本地状态
+  const handleSave = () => {
+    onSave({ ...form, content: localContent })
+  }
 
   return (
     <div className="space-y-3">
-      <input
-        type="text"
-        value={form.title}
-        onChange={e => setForm({ ...form, title: e.target.value })}
-        className="input-field font-semibold"
-        placeholder="标题"
-      />
-      <div className="grid grid-cols-2 gap-3">
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">标题</label>
         <input
-          type="number"
-          min={1}
-          value={form.chapterRange?.[0] || ''}
-          onChange={e => {
-            const start = parseInt(e.target.value) || 1
-            const end = form.chapterRange?.[1] || start
-            setForm({
-              ...form,
-              chapterRange: [start, Math.max(start, end)]
-            })
-          }}
-          className="input-field"
-          placeholder="起始章节"
-        />
-        <input
-          type="number"
-          min={1}
-          value={form.chapterRange?.[1] || ''}
-          onChange={e => {
-            const end = parseInt(e.target.value) || 1
-            const start = form.chapterRange?.[0] || 1
-            setForm({
-              ...form,
-              chapterRange: [Math.min(start, end), end]
-            })
-          }}
-          className="input-field"
-          placeholder="结束章节"
+          type="text"
+          value={form.title}
+          onChange={e => setForm({ ...form, title: e.target.value })}
+          className="input-field font-semibold"
+          placeholder="大纲标题"
         />
       </div>
-      <textarea
-        value={form.content || ''}
-        onChange={e => setForm({ ...form, content: e.target.value })}
-        className="input-field h-32 resize-none"
-        placeholder="内容"
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">起始章节</label>
+          <input
+            type="number"
+            min={1}
+            value={form.chapterRange?.[0] || ''}
+            onChange={e => {
+              const start = parseInt(e.target.value) || 1
+              const end = form.chapterRange?.[1] || start
+              setForm({
+                ...form,
+                chapterRange: [start, Math.max(start, end)]
+              })
+            }}
+            className="input-field"
+            placeholder="起始章节"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">结束章节</label>
+          <input
+            type="number"
+            min={1}
+            value={form.chapterRange?.[1] || ''}
+            onChange={e => {
+              const end = parseInt(e.target.value) || 1
+              const start = form.chapterRange?.[0] || 1
+              setForm({
+                ...form,
+                chapterRange: [Math.min(start, end), end]
+              })
+            }}
+            className="input-field"
+            placeholder="结束章节"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">内容</label>
+        <textarea
+          value={localContent}
+          onChange={e => handleContentChange(e.target.value)}
+          className="input-field h-32 resize-none"
+          placeholder="描述这一段情节的发展..."
+        />
+      </div>
       <div className="flex gap-2">
-        <button onClick={() => onSave(form)} className="btn-primary text-sm py-1.5">
+        <button onClick={handleSave} className="btn-primary text-sm py-1.5">
           <Check className="w-4 h-4" />
         </button>
         <button onClick={onCancel} className="btn-secondary text-sm py-1.5">

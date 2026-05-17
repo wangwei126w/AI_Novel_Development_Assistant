@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getClues, createClue, resolveClue, updateClueStatus, getClueReminders } from '../hooks/useMegaApi'
+import { getClues, createClue, resolveClue, updateClueStatus, getClueReminders, aiExtractClues, getMegaProject, getChaptersPage } from '../hooks/useMegaApi'
 import type { Clue, ClueStatus, ClueType } from '../types/mega-novel'
 import {
   ArrowLeft,
@@ -14,7 +14,10 @@ import {
   Search,
   Filter,
   BookOpen,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  Loader2,
+  BrainCircuit
 } from 'lucide-react'
 
 const clueTypeLabels: Record<string, string> = {
@@ -58,6 +61,13 @@ export default function CluesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [currentChapter, setCurrentChapter] = useState(1)
+
+  // AI 提取相关状态
+  const [showAIExtractModal, setShowAIExtractModal] = useState(false)
+  const [aiExtracting, setAiExtracting] = useState(false)
+  const [aiExtractResult, setAiExtractResult] = useState<any>(null)
+  const [chapters, setChapters] = useState<{id: string, number: number, title: string}[]>([])
+  const [selectedChapterId, setSelectedChapterId] = useState<string>('')
 
   // 创建表单状态
   const [newClue, setNewClue] = useState({
@@ -158,6 +168,54 @@ export default function CluesPage() {
     }
   }
 
+  // 加载章节列表
+  const loadChapters = async () => {
+    if (!projectId) return
+    try {
+      const data = await getChaptersPage(projectId, 1, 100)
+      setChapters(data.chapters.map(ch => ({ id: ch.id, number: ch.number, title: ch.title })))
+      if (data.chapters.length > 0 && !selectedChapterId) {
+        setSelectedChapterId(data.chapters[0].id)
+      }
+    } catch (error) {
+      console.error('加载章节失败:', error)
+    }
+  }
+
+  // AI 智能提取线索
+  const handleAIExtract = async () => {
+    if (!projectId || !selectedChapterId) return
+    
+    setAiExtracting(true)
+    setAiExtractResult(null)
+    
+    try {
+      const result = await aiExtractClues(projectId, selectedChapterId, {
+        analyzeTiming: true,
+        checkRelationships: true
+      })
+      
+      setAiExtractResult(result)
+      
+      if (result.success && result.extracted > 0) {
+        loadClues()
+        loadReminders()
+      }
+    } catch (error) {
+      console.error('AI 提取失败:', error)
+      setAiExtractResult({ success: false, message: '提取失败，请检查 AI 配置', extracted: 0, clues: [] })
+    } finally {
+      setAiExtracting(false)
+    }
+  }
+
+  // 打开 AI 提取弹窗时加载章节
+  const openAIExtractModal = () => {
+    setShowAIExtractModal(true)
+    loadChapters()
+    setAiExtractResult(null)
+  }
+
   const filteredClues = clues.filter(clue =>
     searchQuery === '' ||
     clue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -185,13 +243,22 @@ export default function CluesPage() {
                 <p className="text-sm text-emerald-600">管理小说中的挖坑与填坑</p>
               </div>
             </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              新建线索
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={openAIExtractModal}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors"
+              >
+                <BrainCircuit className="w-4 h-4" />
+                AI 智能提取
+              </button>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                新建线索
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -502,6 +569,131 @@ export default function CluesPage() {
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
               >
                 创建线索
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI 智能提取模态框 */}
+      {showAIExtractModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl w-full max-w-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg">
+                <BrainCircuit className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">AI 智能提取线索</h2>
+                <p className="text-sm text-gray-500">使用 AI 深度分析章节内容，自动识别伏笔和悬念</p>
+              </div>
+            </div>
+
+            {/* 章节选择 */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">选择要分析的章节</label>
+              <select
+                value={selectedChapterId}
+                onChange={(e) => setSelectedChapterId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                {chapters.map(ch => (
+                  <option key={ch.id} value={ch.id}>
+                    第{ch.number}章：{ch.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 提取按钮 */}
+            <button
+              onClick={handleAIExtract}
+              disabled={aiExtracting || !selectedChapterId}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+            >
+              {aiExtracting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  AI 分析中...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  开始智能提取
+                </>
+              )}
+            </button>
+
+            {/* 提取结果 */}
+            {aiExtractResult && (
+              <div className="border border-gray-200 rounded-lg p-4">
+                {aiExtractResult.success ? (
+                  <>
+                    <div className="flex items-center gap-2 mb-4">
+                      {aiExtractResult.extracted > 0 ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-yellow-500" />
+                      )}
+                      <span className="font-medium text-gray-900">{aiExtractResult.message}</span>
+                    </div>
+
+                    {aiExtractResult.analysis && (
+                      <div className="grid grid-cols-3 gap-3 mb-4 text-sm">
+                        <div className="bg-purple-50 p-3 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-purple-600">{aiExtractResult.analysis.totalDetected}</div>
+                          <div className="text-gray-600">检测到</div>
+                        </div>
+                        <div className="bg-green-50 p-3 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-green-600">{aiExtractResult.extracted}</div>
+                          <div className="text-gray-600">已保存</div>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-gray-600">{aiExtractResult.analysis.duplicatesFiltered}</div>
+                          <div className="text-gray-600">重复过滤</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {aiExtractResult.clues && aiExtractResult.clues.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="font-medium text-gray-900">提取的线索：</h3>
+                        {aiExtractResult.clues.map((clue: any, index: number) => (
+                          <div key={clue.id || index} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`px-2 py-0.5 text-xs rounded-full ${clueTypeColors[clue.type] || 'bg-gray-100 text-gray-700'}`}>
+                                {clueTypeLabels[clue.type] || clue.type}
+                              </span>
+                              <span className="font-medium text-gray-900">{clue.title}</span>
+                              <span className="text-xs text-gray-500">重要性:{clue.importance}/5</span>
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-2">{clue.description}</p>
+                            {clue.reasoning && (
+                              <p className="text-xs text-purple-600 mt-1">💡 {clue.reasoning}</p>
+                            )}
+                            {clue.expectedResolveChapter && (
+                              <p className="text-xs text-blue-600 mt-1">📅 建议第{clue.expectedResolveChapter}章解决</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle className="w-5 h-5" />
+                    <span>{aiExtractResult.message || '提取失败'}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowAIExtractModal(false)}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                关闭
               </button>
             </div>
           </div>
