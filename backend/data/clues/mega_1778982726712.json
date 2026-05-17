@@ -1,0 +1,130 @@
+[
+  {
+    "id": "clue_1778983147656_y0152maex",
+    "type": "foreshadowing",
+    "status": "resolved",
+    "title": "神秘黑袍人的身份",
+    "description": "第15章出现的神秘黑袍人给了主角一枚玉佩，暗示与主角身世有关",
+    "chapterId": "ch_15",
+    "chapterNumber": 15,
+    "createdAt": 1778983147656,
+    "relatedCharacters": [
+      "主角"
+    ],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 100,
+    "expectedResolveVolume": null,
+    "importance": 5,
+    "resolvedAt": 1778983353753,
+    "resolvedChapterId": "ch_100",
+    "resolution": "神秘黑袍人是主角的亲生父亲，当年为了保护家族不得不隐姓埋名",
+    "mentions": [
+      {
+        "chapterId": "ch_15",
+        "chapterNumber": 15,
+        "type": "create",
+        "timestamp": 1778983147656
+      },
+      {
+        "chapterId": "ch_100",
+        "chapterNumber": 100,
+        "type": "resolve",
+        "timestamp": 1778983147675
+      },
+      {
+        "chapterId": "ch_100",
+        "chapterNumber": 100,
+        "type": "resolve",
+        "timestamp": 1778983353753
+      }
+    ],
+    "remindBeforeChapter": 5
+  },
+  {
+    "id": "clue_1778983147661_czbahw3uv",
+    "type": "mystery",
+    "status": "active",
+    "title": "消失的秘境",
+    "description": "第20章提到上古秘境突然消失，可能与即将到来的大劫有关",
+    "chapterId": "ch_20",
+    "chapterNumber": 20,
+    "createdAt": 1778983147662,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 80,
+    "expectedResolveVolume": null,
+    "importance": 4,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_20",
+        "chapterNumber": 20,
+        "type": "create",
+        "timestamp": 1778983147662
+      }
+    ],
+    "remindBeforeChapter": 3
+  },
+  {
+    "id": "clue_1778983353739_5igjxiw1j",
+    "type": "foreshadowing",
+    "status": "active",
+    "title": "神秘黑袍人的身份",
+    "description": "第15章出现的神秘黑袍人给了主角一枚玉佩，暗示与主角身世有关",
+    "chapterId": "ch_15",
+    "chapterNumber": 15,
+    "createdAt": 1778983353739,
+    "relatedCharacters": [
+      "主角"
+    ],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 100,
+    "expectedResolveVolume": null,
+    "importance": 5,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_15",
+        "chapterNumber": 15,
+        "type": "create",
+        "timestamp": 1778983353739
+      }
+    ],
+    "remindBeforeChapter": 5
+  },
+  {
+    "id": "clue_1778983353743_ie0jeqkg8",
+    "type": "mystery",
+    "status": "active",
+    "title": "消失的秘境",
+    "description": "第20章提到上古秘境突然消失，可能与即将到来的大劫有关",
+    "chapterId": "ch_20",
+    "chapterNumber": 20,
+    "createdAt": 1778983353743,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 80,
+    "expectedResolveVolume": null,
+    "importance": 4,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_20",
+        "chapterNumber": 20,
+        "type": "create",
+        "timestamp": 1778983353743
+      }
+    ],
+    "remindBeforeChapter": 3
+  }
+]

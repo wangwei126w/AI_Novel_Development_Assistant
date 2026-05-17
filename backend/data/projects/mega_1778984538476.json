@@ -1,0 +1,60 @@
+{
+  "id": "mega_1778984538476",
+  "userId": "mp6jobe4",
+  "title": "测试挖坑填坑小说",
+  "summary": "测试用小说",
+  "targetWordCount": 1000000,
+  "config": {
+    "targetWordCount": 1000000,
+    "targetChapters": 334,
+    "avgChapterLength": 3000,
+    "autoSummary": true,
+    "autoBackup": true,
+    "backupInterval": 30,
+    "aiContextMode": "deep"
+  },
+  "parts": [],
+  "volumes": [
+    {
+      "id": "vol_1778984665853",
+      "number": 1,
+      "title": "测试1卷",
+      "summary": "",
+      "chapterIds": [
+        "mp95jhv1"
+      ],
+      "createdAt": 1778984665853
+    }
+  ],
+  "chapters": [
+    {
+      "id": "mp95jhv1",
+      "number": 1,
+      "title": "塑塑形纪念币",
+      "wordCount": 0,
+      "volumeId": "vol_1778984665853",
+      "createdAt": 1778984671789,
+      "updatedAt": 1778985003815
+    }
+  ],
+  "characters": [],
+  "worldSettings": {
+    "background": "",
+    "rules": "",
+    "history": "",
+    "geography": [],
+    "factions": [],
+    "timeline": [],
+    "cultures": [],
+    "importantItems": []
+  },
+  "plotOutlines": [],
+  "notes": [],
+  "status": "planning",
+  "locked": false,
+  "totalWordCount": 4354,
+  "totalChapters": 0,
+  "createdAt": 1778984538476,
+  "updatedAt": 1778996709992,
+  "wordCount": 0
+}

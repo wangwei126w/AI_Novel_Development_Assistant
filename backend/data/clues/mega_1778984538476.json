@@ -1,0 +1,232 @@
+[
+  {
+    "id": "clue_1778984538482_os50eh7dj",
+    "type": "foreshadowing",
+    "status": "active",
+    "title": "上古神器的下落",
+    "description": "第50章提到上古神器被封印在禁地深处",
+    "chapterId": "ch_50",
+    "chapterNumber": 50,
+    "createdAt": 1778984538482,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 200,
+    "expectedResolveVolume": null,
+    "importance": 5,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_50",
+        "chapterNumber": 50,
+        "type": "create",
+        "timestamp": 1778984538482
+      }
+    ],
+    "remindBeforeChapter": 5
+  },
+  {
+    "id": "clue_1778984538484_2sxkygsng",
+    "type": "mystery",
+    "status": "active",
+    "title": "师父的真实身份",
+    "description": "第30章暗示师父可能是魔道至尊转世",
+    "chapterId": "ch_30",
+    "chapterNumber": 30,
+    "createdAt": 1778984538484,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 150,
+    "expectedResolveVolume": null,
+    "importance": 4,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_30",
+        "chapterNumber": 30,
+        "type": "create",
+        "timestamp": 1778984538484
+      }
+    ],
+    "remindBeforeChapter": 3
+  },
+  {
+    "id": "clue_1778991370668_4g8kt2xgx",
+    "type": "foreshadowing",
+    "status": "active",
+    "title": "神秘玉佩的来历",
+    "description": "林凡母亲留下的玉佩中藏着上古功法《混沌造化诀》，玉佩的来历和父亲的身份有关",
+    "chapterId": "ch_1",
+    "chapterNumber": 1,
+    "createdAt": 1778991370668,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 500,
+    "expectedResolveVolume": null,
+    "importance": 5,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_1",
+        "chapterNumber": 1,
+        "type": "create",
+        "timestamp": 1778991370668
+      }
+    ],
+    "remindBeforeChapter": 10
+  },
+  {
+    "id": "clue_1778991370670_mm406cyjy",
+    "type": "mystery",
+    "status": "active",
+    "title": "暗中观察的神秘人",
+    "description": "林凡炼丹时被神秘人观察，此人身份不明，可能是敌是友",
+    "chapterId": "ch_5",
+    "chapterNumber": 5,
+    "createdAt": 1778991370670,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 100,
+    "expectedResolveVolume": null,
+    "importance": 4,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_5",
+        "chapterNumber": 5,
+        "type": "create",
+        "timestamp": 1778991370670
+      }
+    ],
+    "remindBeforeChapter": 5
+  },
+  {
+    "id": "clue_1778991370671_fzhb9ciy3",
+    "type": "quest",
+    "status": "active",
+    "title": "寻找父亲的线索",
+    "description": "林凡的父亲失踪多年，需要找到他的下落",
+    "chapterId": "ch_1",
+    "chapterNumber": 1,
+    "createdAt": 1778991370671,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 1000,
+    "expectedResolveVolume": null,
+    "importance": 5,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_1",
+        "chapterNumber": 1,
+        "type": "create",
+        "timestamp": 1778991370671
+      }
+    ],
+    "remindBeforeChapter": 20
+  },
+  {
+    "id": "clue_1778991515609_xnb2114oo",
+    "type": "foreshadowing",
+    "status": "active",
+    "title": "神秘玉佩的来历",
+    "description": "林凡母亲留下的玉佩中藏着上古功法《混沌造化诀》，玉佩的来历和父亲的身份有关",
+    "chapterId": "ch_1",
+    "chapterNumber": 1,
+    "createdAt": 1778991515609,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 500,
+    "expectedResolveVolume": null,
+    "importance": 5,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_1",
+        "chapterNumber": 1,
+        "type": "create",
+        "timestamp": 1778991515609
+      }
+    ],
+    "remindBeforeChapter": 10
+  },
+  {
+    "id": "clue_1778991515611_kt1yiwljc",
+    "type": "mystery",
+    "status": "resolved",
+    "title": "暗中观察的神秘人",
+    "description": "林凡炼丹时被神秘人观察，此人身份不明，可能是敌是友",
+    "chapterId": "ch_5",
+    "chapterNumber": 5,
+    "createdAt": 1778991515611,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 100,
+    "expectedResolveVolume": null,
+    "importance": 4,
+    "resolvedAt": 1778996659218,
+    "resolvedChapterId": "ch_1",
+    "resolution": "阿萨德",
+    "mentions": [
+      {
+        "chapterId": "ch_5",
+        "chapterNumber": 5,
+        "type": "create",
+        "timestamp": 1778991515611
+      },
+      {
+        "chapterId": "ch_1",
+        "chapterNumber": 1,
+        "type": "resolve",
+        "timestamp": 1778996659218
+      }
+    ],
+    "remindBeforeChapter": 5
+  },
+  {
+    "id": "clue_1778991515613_ao96dcvav",
+    "type": "quest",
+    "status": "active",
+    "title": "寻找父亲的线索",
+    "description": "林凡的父亲失踪多年，需要找到他的下落",
+    "chapterId": "ch_1",
+    "chapterNumber": 1,
+    "createdAt": 1778991515613,
+    "relatedCharacters": [],
+    "relatedItems": [],
+    "relatedLocations": [],
+    "expectedResolveChapter": 1000,
+    "expectedResolveVolume": null,
+    "importance": 5,
+    "resolvedAt": null,
+    "resolvedChapterId": null,
+    "resolution": null,
+    "mentions": [
+      {
+        "chapterId": "ch_1",
+        "chapterNumber": 1,
+        "type": "create",
+        "timestamp": 1778991515613
+      }
+    ],
+    "remindBeforeChapter": 20
+  }
+]

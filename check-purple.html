@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>检查紫色样式</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-10">
+  <h1 class="text-2xl mb-4">按钮样式测试</h1>
+  
+  <!-- 正确的绿色样式 -->
+  <button class="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
+  </button>
+  
+  <span class="ml-2">← 这个按钮应该是灰色，hover变绿色</span>
+  
+  <br><br>
+  
+  <!-- 错误的紫色样式 -->
+  <button class="p-2 bg-purple-100 text-purple-600 hover:bg-purple-200 rounded-lg transition-colors font-bold">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
+    <span class="ml-1 text-xs">RAG</span>
+  </button>
+  
+  <span class="ml-2">← 这个按钮是紫色（错误的样式）</span>
+</body>
+</html>
