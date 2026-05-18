@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Globe, Plus, Trash2, Clock, Edit2, Check, X } from 'lucide-react'
 import { WorldSettings, TimelineEvent } from '../types'
+import FormatButton from './FormatButton'
 
 interface WorldPanelProps {
   worldSettings: WorldSettings
@@ -133,7 +134,16 @@ export default function WorldPanel({ worldSettings, onUpdate }: WorldPanelProps)
 
         {/* 背景设定 */}
         <div className="card">
-          <h3 className="font-semibold mb-3">世界背景</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold">世界背景</h3>
+            <FormatButton
+              content={localBackground}
+              onFormat={(formatted) => {
+                setLocalBackground(formatted)
+                debouncedUpdate({ background: formatted })
+              }}
+            />
+          </div>
           <textarea
             value={localBackground}
             onChange={e => handleBackgroundChange(e.target.value)}
@@ -145,7 +155,16 @@ export default function WorldPanel({ worldSettings, onUpdate }: WorldPanelProps)
 
         {/* 规则设定 */}
         <div className="card">
-          <h3 className="font-semibold mb-3">世界规则</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold">世界规则</h3>
+            <FormatButton
+              content={localRules}
+              onFormat={(formatted) => {
+                setLocalRules(formatted)
+                debouncedUpdate({ rules: formatted })
+              }}
+            />
+          </div>
           <textarea
             value={localRules}
             onChange={e => handleRulesChange(e.target.value)}

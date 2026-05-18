@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, User, Edit2, Check, X } from 'lucide-react'
 import { Character } from '../types'
+import FormatButton from './FormatButton'
 
 interface CharacterPanelProps {
   characters: Character[]
@@ -82,7 +83,14 @@ export default function CharacterPanel({ characters, onUpdate }: CharacterPanelP
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">简介</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">简介</label>
+                  <FormatButton
+                    content={newCharacter.description || ''}
+                    onFormat={(formatted) => setNewCharacter({ ...newCharacter, description: formatted })}
+                    showLabel={false}
+                  />
+                </div>
                 <textarea
                   value={newCharacter.description || ''}
                   onChange={e => setNewCharacter({ ...newCharacter, description: e.target.value })}
@@ -236,6 +244,14 @@ function CharacterEditForm({ character, onSave, onCancel }: {
         className="input-field text-sm"
         placeholder="外貌"
       />
+      <div className="flex items-center justify-between mb-1">
+        <label className="text-sm font-medium text-gray-700">简介</label>
+        <FormatButton
+          content={localDescription}
+          onFormat={(formatted) => handleDescriptionChange(formatted)}
+          showLabel={false}
+        />
+      </div>
       <textarea
         value={localDescription}
         onChange={e => handleDescriptionChange(e.target.value)}

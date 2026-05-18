@@ -14,13 +14,18 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    hmr: { overlay: false },
+    hmr: { 
+      overlay: false,
+      port: 3000
+    },
     watch: {
-      usePolling: true,
-      interval: 100
+      usePolling: false  // Windows下使用原生文件监听
     },
     proxy: {
-      '/api': 'http://localhost:3001'
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      }
     }
   }
 })

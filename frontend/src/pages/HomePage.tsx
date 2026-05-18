@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import { BookOpen, Plus, Trash2, Clock, FileText, ArrowRight, Sparkles, Lock, Unlock, Edit2, X, Check } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { BookOpen, Plus, Trash2, Clock, FileText, ArrowRight, Sparkles, Lock, Unlock, Edit2, X, Check, Image, Upload, Trash } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Project } from '../types'
-import { fetchProjects, createProject, deleteProject } from '../hooks/useApi'
+import { fetchProjects, createProject, deleteProject, updateProject } from '../hooks/useApi'
 import UserMenu from '../components/UserMenu'
 
 export default function HomePage() {
@@ -10,11 +10,15 @@ export default function HomePage() {
   const [showNewForm, setShowNewForm] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newSummary, setNewSummary] = useState('')
-  
+
   // 编辑状态
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editSummary, setEditSummary] = useState('')
+
+  // 封面上传状态
+  const [uploadingCover, setUploadingCover] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     loadProjects()
@@ -77,10 +81,59 @@ export default function HomePage() {
       alert('项目名称不能为空')
       return
     }
-    const { updateProject } = await import('../hooks/useApi')
     await updateProject(projectId, { title: editTitle, summary: editSummary })
     setEditingId(null)
     loadProjects()
+  }
+
+  // 处理封面上传
+  async function handleCoverUpload(projectId: string, file: File) {
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('图片大小不能超过5MB')
+      return
+    }
+
+    setUploadingCover(projectId)
+
+    try {
+      // 转换为 base64
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        const base64 = e.target?.result as string
+        await updateProject(projectId, { coverImage: base64 })
+        loadProjects()
+        setUploadingCover(null)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('上传封面失败:', error)
+      alert('上传封面失败')
+      setUploadingCover(null)
+    }
+  }
+
+  // 删除封面
+  async function handleDeleteCover(projectId: string) {
+    if (!confirm('确定要删除封面吗？')) return
+    try {
+      await updateProject(projectId, { coverImage: null })
+      loadProjects()
+    } catch (error) {
+      console.error('删除封面失败:', error)
+      alert('删除封面失败')
+    }
+  }
+
+  // 触发文件选择
+  function triggerFileInput(projectId: string) {
+    if (fileInputRef.current) {
+      fileInputRef.current.dataset.projectId = projectId
+      fileInputRef.current.click()
+    }
   }
 
   function formatDate(timestamp: number) {
@@ -172,10 +225,26 @@ export default function HomePage() {
           )}
         </div>
 
+        {/* 隐藏的文件输入 */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            const projectId = fileInputRef.current?.dataset.projectId
+            if (file && projectId) {
+              handleCoverUpload(projectId, file)
+            }
+            e.target.value = ''
+          }}
+        />
+
         {/* 项目列表 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => (
-            <div key={project.id} className="card hover:shadow-lg transition-all group border-emerald-100/60 bg-white/80 backdrop-blur-sm">
+            <div key={project.id} className="card hover:shadow-lg transition-all group border-emerald-100/60 bg-white/80 backdrop-blur-sm overflow-hidden">
               {editingId === project.id ? (
                 // 编辑模式
                 <div className="space-y-3">
@@ -200,14 +269,14 @@ export default function HomePage() {
                     />
                   </div>
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={() => saveEdit(project.id)}
                       className="btn-primary text-sm py-1.5 flex items-center gap-1"
                     >
                       <Check className="w-4 h-4" />
                       保存
                     </button>
-                    <button 
+                    <button
                       onClick={cancelEdit}
                       className="btn-secondary text-sm py-1.5 flex items-center gap-1"
                     >
@@ -219,6 +288,69 @@ export default function HomePage() {
               ) : (
                 // 显示模式
                 <>
+                  {/* 封面图片区域 */}
+                  <div className="relative -mx-4 -mt-4 mb-3 bg-gradient-to-br from-emerald-50 to-blue-50 overflow-hidden">
+                    {project.coverImage ? (
+                      <>
+                        <div className="relative w-full aspect-[16/9]">
+                          <img
+                            src={project.coverImage}
+                            alt={project.title}
+                            className="w-full h-full object-contain bg-gray-900/5"
+                          />
+                        </div>
+                        {/* 封面操作按钮 */}
+                        {!project.locked && (
+                          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => triggerFileInput(project.id)}
+                              disabled={uploadingCover === project.id}
+                              className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                              title="更换封面"
+                            >
+                              {uploadingCover === project.id ? (
+                                <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Upload className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCover(project.id)}
+                              className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-sm text-gray-600 hover:text-red-500 transition-colors"
+                              title="删除封面"
+                            >
+                              <Trash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="w-full aspect-[16/9] flex items-center justify-center">
+                        {!project.locked ? (
+                          <button
+                            onClick={() => triggerFileInput(project.id)}
+                            disabled={uploadingCover === project.id}
+                            className="flex flex-col items-center gap-2 text-gray-400 hover:text-emerald-500 transition-colors"
+                          >
+                            {uploadingCover === project.id ? (
+                              <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <Image className="w-8 h-8" />
+                                <span className="text-xs">点击上传封面</span>
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-gray-300">
+                            <BookOpen className="w-8 h-8" />
+                            <span className="text-xs">暂无封面</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex justify-between items-start mb-3">
                     <Link
                       to={`/project/${project.id}`}

@@ -378,7 +378,7 @@ export default function ProjectPage() {
               const unassignedChapters = (project.chapters || []).filter(ch => !ch.volumeId)
               const hasVolumes = (project.volumes || []).length > 0
               
-              // 如果没有卷，直接显示章节列表
+              // 如果没有卷，直接显示章节列表（也包含操作按钮）
               if (!hasVolumes) {
                 return unassignedChapters.map((chapter) => (
                   <div
@@ -413,6 +413,42 @@ export default function ProjectPage() {
                       <div className="truncate">{chapter.title}</div>
                       <div className="text-xs text-gray-400">{chapter.wordCount} 字</div>
                     </div>
+                    {/* 章节操作按钮 */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleGenerateSummary(chapter.id)
+                        }}
+                        className="p-1 text-gray-400 hover:text-emerald-600"
+                        title="生成摘要"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleChapterLock(chapter.id)
+                        }}
+                        className="p-1 text-gray-400 hover:text-amber-500"
+                        title={chapter.locked ? '解锁' : '锁定'}
+                      >
+                        {chapter.locked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                      </button>
+                      {!chapter.locked && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteChapter(chapter.id)
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-500"
+                          title="删除"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                    {chapter.locked && <span className="text-xs text-amber-500 ml-1">🔒</span>}
                   </div>
                 ))
               }

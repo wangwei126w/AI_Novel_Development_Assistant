@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { List, Plus, Trash2, Edit2, Check, X, BookOpen } from 'lucide-react'
 import { PlotOutline, Chapter } from '../types'
+import FormatButton from './FormatButton'
 
 interface OutlinePanelProps {
   outlines: PlotOutline[]
@@ -108,7 +109,14 @@ export default function OutlinePanel({ outlines, chapters, onUpdate }: OutlinePa
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">内容</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">内容</label>
+                  <FormatButton
+                    content={newOutline.content || ''}
+                    onFormat={(formatted) => setNewOutline({ ...newOutline, content: formatted })}
+                    showLabel={false}
+                  />
+                </div>
                 <textarea
                   value={newOutline.content || ''}
                   onChange={e => setNewOutline({ ...newOutline, content: e.target.value })}
@@ -262,7 +270,14 @@ function OutlineEditForm({ outline, onSave, onCancel }: {
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">内容</label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-xs font-medium text-gray-500">内容</label>
+          <FormatButton
+            content={localContent}
+            onFormat={(formatted) => handleContentChange(formatted)}
+            showLabel={false}
+          />
+        </div>
         <textarea
           value={localContent}
           onChange={e => handleContentChange(e.target.value)}

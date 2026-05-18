@@ -6,6 +6,7 @@ import {
   Sparkles, Save, Edit3
 } from 'lucide-react'
 import { getSegments, updateSegmentSummary, getSegmentContext } from '../hooks/useMegaApi'
+import FormatButton from '../components/FormatButton'
 
 interface Segment {
   id: number
@@ -332,9 +333,16 @@ export default function SegmentsPage() {
                 <div className="border-t border-gray-100 p-4 bg-gray-50/50">
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        段摘要
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-sm font-medium text-gray-700">
+                          段摘要
+                        </label>
+                        <FormatButton
+                          content={editSummary}
+                          onFormat={setEditSummary}
+                          showLabel={false}
+                        />
+                      </div>
                       <textarea
                         value={editSummary}
                         onChange={(e) => setEditSummary(e.target.value)}
@@ -344,9 +352,16 @@ export default function SegmentsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        关键事件（每行一个）
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-sm font-medium text-gray-700">
+                          关键事件（每行一个）
+                        </label>
+                        <FormatButton
+                          content={editEvents}
+                          onFormat={setEditEvents}
+                          showLabel={false}
+                        />
+                      </div>
                       <textarea
                         value={editEvents}
                         onChange={(e) => setEditEvents(e.target.value)}

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Save, Type, AlignLeft, Hash, RotateCcw, Wand2, Sparkles } from 'lucide-react'
+import { Save, Type, AlignLeft, Hash, RotateCcw, Wand2, Sparkles, Layout, Check } from 'lucide-react'
 import { Chapter } from '../types'
 import { aiSummarize } from '../hooks/useApi'
+import { formatNovelText, getFormatStats } from '../utils/format'
 
 interface EditorProps {
   chapter: Chapter
@@ -15,6 +16,9 @@ export default function Editor({ chapter, onUpdate }: EditorProps) {
   const [generatingSummary, setGeneratingSummary] = useState(false)
   const [localSummary, setLocalSummary] = useState(chapter.summary || '')
   const [localKeywords, setLocalKeywords] = useState<string[]>(chapter.keywords || [])
+  const [formatting, setFormatting] = useState(false)
+  const [formatSuccess, setFormatSuccess] = useState(false)
+  const [autoFormat, setAutoFormat] = useState(true) // 默认开启自动排版
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const summaryTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
@@ -95,18 +99,60 @@ export default function Editor({ chapter, onUpdate }: EditorProps) {
     }, 500)
   }
 
-  const handleManualSave = () => {
-    const currentWordCount = countWords(content)
+  // 一键排版功能
+  const handleFormat = useCallback(() => {
+    if (!content.trim() || formatting) return
+
+    setFormatting(true)
+    
+    // 使用 setTimeout 让 UI 有时间更新
+    setTimeout(() => {
+      const formattedContent = formatNovelText(content)
+      setContent(formattedContent)
+      const newCount = countWords(formattedContent)
+      setWordCount(newCount)
+      setFormatting(false)
+      setFormatSuccess(true)
+      
+      // 显示成功提示
+      setTimeout(() => setFormatSuccess(false), 2000)
+      
+      // 自动保存排版后的内容
+      onUpdate({
+        content: formattedContent,
+        wordCount: newCount,
+      })
+    }, 100)
+  }, [content, formatting, onUpdate])
+
+  // 带排版的手动保存
+  const handleManualSave = useCallback(() => {
+    let finalContent = content
+    
+    // 如果开启自动排版，先进行排版
+    if (autoFormat && content.trim()) {
+      finalContent = formatNovelText(content)
+      setContent(finalContent)
+    }
+    
+    const currentWordCount = countWords(finalContent)
+    setWordCount(currentWordCount)
+    
     onUpdate({
       title,
-      content,
+      content: finalContent,
       wordCount: currentWordCount,
     })
-    // 手动保存时也生成摘要（超过50字）
+    
+    // 保存时也生成摘要（超过50字）
     if (currentWordCount >= 50) {
-      autoGenerateSummary(content)
+      autoGenerateSummary(finalContent)
     }
-  }
+    
+    // 显示保存成功提示
+    setFormatSuccess(true)
+    setTimeout(() => setFormatSuccess(false), 1500)
+  }, [content, title, autoFormat, onUpdate, autoGenerateSummary])
 
   const insertFormat = (format: string) => {
     const textarea = textareaRef.current
@@ -179,6 +225,40 @@ export default function Editor({ chapter, onUpdate }: EditorProps) {
               <Hash className="w-4 h-4" />
             </button>
           </div>
+          
+          <div className="h-4 w-px bg-gray-200 mx-1" />
+          
+          {/* 排版按钮 */}
+          <button
+            onClick={handleFormat}
+            disabled={formatting || !content.trim()}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-all ${
+              formatSuccess
+                ? 'bg-green-100 text-green-700'
+                : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            title="一键排版"
+          >
+            {formatting ? (
+              <RotateCcw className="w-4 h-4 animate-spin" />
+            ) : formatSuccess ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Layout className="w-4 h-4" />
+            )}
+            {formatSuccess ? '已排版' : '排版'}
+          </button>
+          
+          {/* 自动排版开关 */}
+          <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+            <input
+              type="checkbox"
+              checked={autoFormat}
+              onChange={(e) => setAutoFormat(e.target.checked)}
+              className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            自动排版
+          </label>
           
           <div className="h-4 w-px bg-gray-200 mx-1" />
           

@@ -174,7 +174,17 @@ export default function AIAssistant({ project, activeChapter, onAIWrite }: AIAss
 
       {/* 消息列表 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/30">
-        {messages.length === 0 && (
+        {!activeChapter && (
+          <div className="text-center py-12 text-amber-600 bg-amber-50 rounded-xl border border-amber-200 mx-4">
+            <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-amber-500" />
+            </div>
+            <p className="mb-2 font-medium text-lg">请先选择一个章节</p>
+            <p className="text-sm text-amber-700">点击左侧章节列表中的章节，或创建新章节</p>
+            <p className="text-xs mt-2 text-amber-500">AI 需要知道为哪个章节生成内容</p>
+          </div>
+        )}
+        {messages.length === 0 && activeChapter && (
           <div className="text-center py-12 text-gray-400">
             <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-indigo-300" />
@@ -259,8 +269,10 @@ export default function AIAssistant({ project, activeChapter, onAIWrite }: AIAss
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 input-field resize-none h-20"
+            disabled={!activeChapter}
+            className="flex-1 input-field resize-none h-20 disabled:bg-gray-100 disabled:text-gray-400"
             placeholder={
+              !activeChapter ? '请先选择或创建一个章节...' :
               selectedMode === 'continue' ? '输入续写要求，或直接发送让 AI 自动续写...' :
               selectedMode === 'rewrite' ? '描述你想要如何改写这段内容...' :
               selectedMode === 'dialogue' ? '描述对话场景和参与角色...' :
@@ -270,8 +282,8 @@ export default function AIAssistant({ project, activeChapter, onAIWrite }: AIAss
           />
           <button
             onClick={handleSubmit}
-            disabled={loading || !input.trim()}
-            className="btn-primary flex items-center gap-2 self-end"
+            disabled={loading || !input.trim() || !activeChapter}
+            className="btn-primary flex items-center gap-2 self-end disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

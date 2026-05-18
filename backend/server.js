@@ -439,7 +439,8 @@ app.get('/api/projects', authMiddleware, async (req, res) => {
             id: project.id, title: project.title, summary: project.summary,
             updatedAt: project.updatedAt, wordCount: project.wordCount || 0,
             userId: project.userId, ownerName,
-            locked: project.locked || false
+            locked: project.locked || false,
+            coverImage: project.coverImage
           });
         }
       }

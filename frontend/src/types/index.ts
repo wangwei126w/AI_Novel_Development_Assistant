@@ -83,6 +83,7 @@ export interface Project {
   notes: Note[];
   volumes?: Volume[]; // 卷列表
   locked?: boolean;
+  coverImage?: string; // 封面图片URL
 }
 
 export type WriteMode = 'continue' | 'rewrite' | 'dialogue' | 'outline' | 'custom';
